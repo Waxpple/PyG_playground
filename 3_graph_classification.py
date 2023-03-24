@@ -115,7 +115,7 @@ def test(loader):
      return correct / len(loader.dataset)  # Derive ratio of correct predictions.
 
 
-for epoch in range(1, 171):
+for epoch in range(1, 11):
     train()
     train_acc = test(train_loader)
     test_acc = test(test_loader)
@@ -142,5 +142,7 @@ test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 # explainer i.e it uses a neural network to generate explanations:
 for epoch in range(30):
     for data in test_loader:
+        print(data.edge_index[0].shape)
+        print(data)
         loss = explainer.algorithm.train(
             epoch, model, data.x, data.edge_index, target=data.y, batch=data.batch)
