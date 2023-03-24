@@ -64,7 +64,7 @@ for step, data in enumerate(train_loader):
 
 class Old_GCN(torch.nn.Module):
     def __init__(self, hidden_channels):
-        super(GCN, self).__init__()
+        super(Old_GCN, self).__init__()
         torch.manual_seed(12345)
         self.conv1 = GCNConv(dataset.num_node_features, hidden_channels)
         self.conv2 = GCNConv(hidden_channels, hidden_channels)
@@ -99,7 +99,7 @@ class GCN(torch.nn.Module):
         self.conv3 = GraphConv(hidden_channels, hidden_channels)
         self.pool3 = SAGPooling(hidden_channels, ratio=0.8)
         self.lin = Linear(hidden_channels*2, dataset.num_classes)
-        self.activation_fn = nn.Sigmoid()
+    
     def forward(self, x, edge_index, batch):
         # 1. Obtain node embeddings 
         x = self.conv1(x, edge_index)
@@ -120,10 +120,10 @@ class GCN(torch.nn.Module):
         # 3. Apply a final classifier
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.lin(x)
-        x = self.activation_fn(x)
-        return x.squeeze(1)
+        
+        return x
 
-model = GCN(hidden_channels=64)
+model = Old_GCN(hidden_channels=64)
 print(model)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 criterion = torch.nn.CrossEntropyLoss()
@@ -163,7 +163,7 @@ explainer = Explainer(
     explanation_type='phenomenon',
     edge_mask_type='object',
     model_config=dict(
-        mode='regression',
+        mode='multiclass_classification',
         task_level='graph',
         return_type='raw',
     ),
@@ -179,4 +179,4 @@ for epoch in range(30):
         print(data.edge_index[0])
         print(data.y)
         loss = explainer.algorithm.train(
-            epoch, model, data.x, data.edge_index, target=data.y.type(torch.float), batch=data.batch)
+            epoch, model, data.x, data.edge_index, target=data.y, batch=data.batch)
